@@ -1210,6 +1210,31 @@ class GeometryEngineTest extends AbstractTestCase
         ];
     }
 
+    #[DataProvider('providerLineInterpolatePoint')]
+    public function testLineInterpolatePoint(string $originalWKT, float $fraction, string $expectedWKT) : void
+    {
+        $geometryEngine = $this->getGeometryEngine();
+
+        if (! $this->isPostGIS()) {
+            self::markTestSkipped('This test currently runs on PostGIS only.');
+        }
+
+        $geometry = Geometry::fromText($originalWKT);
+        $resultGeometry = $geometryEngine->lineInterpolatePoint($geometry, $fraction);
+
+        $this->assertSame($expectedWKT, $resultGeometry->asText());
+    }
+
+    public static function providerLineInterpolatePoint() : array
+    {
+        return [
+            ['LINESTRING(0 0, 10 10, 20 20, 30 30, 40 40)', 0, 'POINT (0 0)'],
+            ['LINESTRING(0 0, 10 10, 20 20, 30 30, 40 40)', 0.25, 'POINT (10 10)'],
+            ['LINESTRING(0 0, 10 10, 20 20, 30 30, 40 40)', 0.50, 'POINT (20 20)'],
+            ['LINESTRING(0 0, 10 10, 20 20, 30 30, 40 40)', 1, 'POINT (40 40)'],
+        ];
+    }
+
     private function getGeometryEngine(): GeometryEngine
     {
         if (! isset($GLOBALS['GEOMETRY_ENGINE'])) {
